@@ -11,7 +11,7 @@ const app = express();
 app.engine("handlebars", handlebars.engine());
 app.set("view engine", "handlebars");
 
-app.use(express.urlencoded( { urlencoded: true }));
+app.use(express.urlencoded({ urlencoded: true }));
 app.use(express.json());
 
 app.get("/usuarios/novo", (req, res) => {
@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/usuarios", (req, res) => {
-    const usuarios = Usuario.findAll({raw: true})
+    const usuarios = Usuario.findAll({ raw: true })
     res.render(`usuarios`, { usuarios });
 });
 
@@ -36,19 +36,49 @@ app.post("/usuarios/novo", async (req, res) => {
     const usuario = await Usuario.create(dadosUsuario);
 });
 
-app.get("/usuarios/:id/atualizar", async (req, res) =>
-{
+app.get("/usuarios/:id/atualizar", async (req, res) => {
     const id = req.params.id;
-    const usuario = Usuario.findByPk(id, { raw: true });
+    const usuario = await Usuario.findByPk(id, { raw: true });
 
     res.render("formUsuario", { usuario });
 })
+
+app.post("/usuarios/:id/atualizar", async (req, res) => {
+    const id = req.params.id;
+
+    const dadosUsuario = {
+        nickname: req.body.nickname,
+        nome: req.body.nome,
+    };
+    
+    const registrosAfetados = await Usuario.update(dadosUsuario, { where: { id: id } });
+
+    if (registrosAfetados > 0) {
+        res.redirect("/usuarios");
+    } else {
+        res.send("Erro ao atualizar usuário!");
+    }
+});
+
+
+app.post("/usuarios/excluir", async (req, res) => {
+    const id = req.body.id;
+
+    const registrosAfetados = await Usuario.destroy({ where: { id: id } });
+
+    if (registrosAfetados > 0) {
+        res.redirect("/usuarios");   
+    } else {
+        res.send("Erro ao excluir usuário!");
+    }
+
+});
+
 
 app.listen(8000, () => {
     console.log("Aplicação rodando!");
 });
 
-    )
 conn
     .sync()
     .then(() => {
